@@ -1,0 +1,3 @@
+# Add project Python dependencies here, e.g.:
+# requests==2.31.0
+# For this minimal example there are no required packages.

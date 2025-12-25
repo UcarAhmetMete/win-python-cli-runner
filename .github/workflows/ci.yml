@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Ensure run.sh executable (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: chmod +x ./run.sh
+
+      - name: Run shell runner (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: ./run.sh "CI" out_ci
+        shell: bash
+
+      - name: Run PowerShell runner (Windows)
+        if: matrix.os == 'windows-latest'
+        run: .\run.ps1 -Name "CI" -Out out_ci -SkipInstall
+        shell: pwsh
+
+      - name: Show output (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          if [ -f out_ci/result.json ]; then
+            cat out_ci/result.json
+          else
+            echo "out_ci/result.json not found"
+          fi
+        shell: bash
+
+      - name: Show output (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          if (Test-Path .\out_ci\result.json) { Get-Content .\out_ci\result.json } else { Write-Host "out_ci\result.json not found" }
+        shell: pwsh
